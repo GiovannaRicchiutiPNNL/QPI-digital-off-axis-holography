@@ -1,0 +1,182 @@
+import cv2
+import numpy as np
+import time
+import pyautogui
+import matplotlib.pyplot as plt
+import scipy.ndimage
+
+# Function to compute the 2D FFT and filter only the CC* (complex conjugate)
+def filter_cc_star(image):
+    # Convert to grayscale if the image is in color
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Compute 2D FFT
+    f = np.fft.fft2(gray_image)
+    
+    # Shift the zero frequency component to the center
+    fshift = np.fft.fftshift(f)
+    
+    magnitude_spectrum = np.abs(fshift)
+    rows, cols = magnitude_spectrum.shape
+    center_row = rows // 2
+    center_col = cols // 2   
+    # Define the search region for the positive frequency peak
+    define_search_start_col = center_col + 100  # Adjust based on application/interferogram (fringe spacing)
+    search_region = magnitude_spectrum[center_row, define_search_start_col:]
+
+    # Find the column index of the maximum in the search region
+    relative_idx = np.argmax(search_region)
+    positive_col = define_search_start_col + relative_idx - 1
+    print(positive_col, center_row)
+    
+    # Step 5: Create a mask to isolate the positive frequency
+    radius = 40  # Adjust radius of the mask as needed 
+    Y, X = np.meshgrid(np.arange(cols), np.arange(rows))
+    mask = (np.sqrt((X - center_row)**2 + (Y - positive_col)**2) <= radius)
+
+    # Apply mask to the FFT data
+    filtered_spectrum = fshift * mask
+
+    # Take the inverse FFT to get the spatial domain image back
+    filtered_image = np.fft.ifft2(np.fft.ifftshift(filtered_spectrum))
+    
+    # Return the filtered image, FFT shift, and filtered spectrum
+    return filtered_image, fshift, filtered_spectrum
+
+# Define the screen region to capture (example: a portion of the screen)
+screen_region = (0, 0, 1000, 800)  # (x, y, width, height)
+
+# Capture the first image from the screen
+first_frame = np.array(pyautogui.screenshot(region=screen_region))
+
+# Compute the filtered image (CC*), FFT shift, and filtered spectrum for the first frame
+filtered_first_frame, fshift_first, filtered_spectrum_first = filter_cc_star(first_frame)
+
+# Save the fshift and filtered spectrum of the first frame
+np.save("fshift_first_frame.npy", fshift_first)
+np.save("filtered_spectrum_first_frame.npy", filtered_spectrum_first)
+
+# Get the real and imaginary parts of the filtered first frame
+first_frame_real = np.real(filtered_first_frame)
+first_frame_imag = np.imag(filtered_first_frame)
+
+print("Starting screen capture at 1 frame per second...")
+frame_count = 0
+while True:
+    # Capture the current frame from the screen
+    current_frame = np.array(pyautogui.screenshot(region=screen_region))
+    
+    # If the current frame has 4 channels (RGBA), convert to 3 channels (RGB)
+    if current_frame.shape[2] == 4:
+        current_frame = cv2.cvtColor(current_frame, cv2.COLOR_RGBA2RGB)
+    
+    frame_count += 1
+    
+    # Capture 1 frame per second (can be changed)
+    time.sleep(1)
+    
+    # Compute the filtered image (CC*), FFT shift, and filtered spectrum for the current frame
+    filtered_current_frame, fshift_current, filtered_spectrum_current = filter_cc_star(current_frame)
+    
+    # Save the fshift and filtered spectrum of the current frame
+    # np.save(f"fshift_current_frame_{frame_count}.npy", fshift_current)
+    # np.save(f"filtered_spectrum_current_frame_{frame_count}.npy", filtered_spectrum_current)
+    
+    current_frame_real = np.real(filtered_current_frame)
+    current_frame_imag = np.imag(filtered_current_frame)
+    
+    
+    i1_conj = np.conj(filtered_first_frame)
+    i2 = filtered_current_frame
+    product = i1_conj * i2
+    real_part = np.real(product)
+    imag_part = np.imag(product)
+    deltaphase = np.arctan2(imag_part, real_part)
+    
+    # Calculate the delta phase
+    phase_hologram1 = np.arctan2(first_frame_imag, first_frame_real)
+    phase_hologram2 = np.arctan2(current_frame_imag, current_frame_real)
+
+    # Calculate the phase difference (delta phase) between the two frames
+    # deltaphase = phase_hologram2 - phase_hologram1
+    
+    # Normalize delta phase for visualization (scale it to [0, 255])
+    deltaphase_normalized = np.uint8(((deltaphase + np.pi) / (2 * np.pi)) * 255)
+    
+    # Apply color map to visualize the delta phase
+    deltaphase_colored = cv2.applyColorMap(deltaphase_normalized, cv2.COLORMAP_TURBO)
+    
+    # Resize if necessary to match the current frame size
+    if deltaphase_colored.shape[:2] != current_frame.shape[:2]:
+        deltaphase_colored = cv2.resize(deltaphase_colored, (current_frame.shape[1], current_frame.shape[0]))
+    
+    # Display the colormap
+    cv2.imshow("Delta Phase", deltaphase_colored)
+    
+    # Check if the user pressed ESC key to exit049094
+    
+    if cv2.waitKey(1) & 0xFF == 27:  # 27 is the ESC key
+        print("Stopping the screen capture.")
+        break
+
+# Close OpenCV window
+cv2.destroyAllWindows()
+
+
+# %%
+#%% This part of the script allows to plot the full data processing in subplots. 
+#%%It is mainly used to make sure that the mask position and radius size are cropping 
+#%%the right frequency component based on the hologram's fringes spacing
+
+fig, axs = plt.subplots(3, 3, figsize=(12, 10))
+
+# Subplot 1 - Hologram 1
+axs[0, 0].imshow(first_frame, aspect='auto')
+axs[0, 0].set_title('Hologram 1')
+
+
+# Subplot 2 - Hologram 2
+axs[0, 1].imshow(current_frame, aspect='auto')
+axs[0, 1].set_title('Hologram 2')
+
+# Subplot 3 - FFT magnitude spectrum 1
+axs[0, 2].imshow(np.log1p(np.abs(fshift_first)), aspect='auto')
+axs[0, 2].set_title('FFT Spectrum 1')
+
+
+# Subplot 4 - FFT magnitude spectrum 2
+axs[1, 0].imshow(np.log1p(np.abs(fshift_current)), aspect='auto')
+axs[1, 0].set_title('FFT Spectrum 2')
+
+
+# Subplot 5 - Filtered Spectrum 1
+axs[1, 1].imshow(np.log1p(np.abs(filtered_spectrum_first)), aspect='auto')
+axs[1, 1].set_title('Filtered Spectrum 1')
+
+
+# Subplot 6 - Filtered Spectrum 2
+axs[1, 2].imshow(np.log1p(np.abs(filtered_spectrum_current)), aspect='auto')
+axs[1, 2].set_title('Filtered Spectrum 2')
+
+
+# Subplot 7 - Reconstructed Data 1
+axs[2, 0].imshow(np.abs(phase_hologram1), aspect='auto')
+axs[2, 0].set_title('Reconstructed Hologram 1')
+
+
+# Subplot 8 - Reconstructed Data 2
+axs[2, 1].imshow(np.abs(phase_hologram2), aspect='auto')
+axs[2, 1].set_title('Reconstructed Hologram 2')
+
+
+# Subplot 9 - Delta phase
+im = axs[2, 2].imshow(deltaphase_normalized, aspect='auto', cmap='turbo')
+axs[2, 2].set_title('Delta \u03c6 (arctan(Im/Re))')
+
+# Add a colorbar for the deltaphase plot
+cbar = fig.colorbar(im, ax=axs[2, 2], orientation='vertical', fraction=0.046, pad=0.04)
+cbar.set_label('Phase Difference (\u03c6)')
+
+plt.tight_layout()
+plt.show()
+
