@@ -1,3 +1,10 @@
+***If this script is used and/or contributes to your published work, please acknowledge it by citing:  
+https://chemrxiv.org/engage/chemrxiv/article-details/68df3d315dd091524fa363d2
+Thank you! :)
+Giovanna***
+
+
+
 Real-time phase unwrapping of a screen portion
 Holograms are captured using the software provided by the camera’s brand. The 2D-FFT of both holograms are computed. Once the images are translated 
 into the spatial frequency domain, three frequency components are identified: the DC (autocorrelation) terms at zero (origin) and the CC (cross-correlation) 
@@ -10,3 +17,5 @@ The script allows to unwrap the phase from an hologram in a portion of the scree
 where the camera real-time image is remotely projected. Once the script is started, it takes the first frame as a reference hologram and
 the following are acquired every 1s. A live window shows the converted phase difference. This approach facilitates the overall analysis 
 since no big amount of data are stored but only once the experimental conditions are satisfying, the holograms can be recorded with the camera's sw.
+
+
