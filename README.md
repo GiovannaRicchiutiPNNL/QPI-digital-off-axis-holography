@@ -1,21 +1,15 @@
-***If this script is used and/or contributes to your published work, please acknowledge it by citing:  
-https://chemrxiv.org/engage/chemrxiv/article-details/68df3d315dd091524fa363d2
-Thank you! :)
-Giovanna***
+Real-time Phase Unwrapping of Holograms Directly from the Desktop Screen
 
+Holograms are captured using the acquisition software provided by the camera manufacturer and displayed on the desktop screen. The 2D Fast Fourier Transform (2D-FFT) of both holograms is computed. Once the images are translated into the spatial frequency domain, three frequency components are identified: the DC (autocorrelation) term at the origin (zero frequency) and the CC (cross-correlation) terms, which are spatially symmetric with respect to the origin and lie along the negative and positive semi-axes, respectively.
 
+To retrieve only the phase information, which is of interest in quantitative phase analysis, a mask is generated to isolate the positive-axis CC component. The inverse 2D-FFT is then computed, and the phase difference between the first hologram (reference) and the second hologram (sample or object) is calculated.
 
-Real-time phase unwrapping of a screen portion
-Holograms are captured using the software provided by the camera’s brand. The 2D-FFT of both holograms are computed. Once the images are translated 
-into the spatial frequency domain, three frequency components are identified: the DC (autocorrelation) terms at zero (origin) and the CC (cross-correlation) 
-terms which are spatially symmetric with respect to the zero and they lay in the negative semi-axis and positive semi-axis respectively. 
-To retrieve only the phase information, which is of interest in quantitative-phase analysis, a mask is generated in order to isolate only the positive axis CC. 
-The inverse 2D-FFT are then computed and the phase difference between the first hologram (reference) and the second hologram (sample or object) is calculated. 
+The script allows phase unwrapping from a hologram within a selected portion of the screen (with an adjustable aspect ratio) where the camera’s real-time image is displayed lively or accessed through remote desktop from another computed connected to the camera. Once the script is started, it captures the first frame as the reference hologram, and subsequent frames are acquired every 1 s. A live window displays the computed phase difference in real time.
 
+This approach simplifies analysis by avoiding the need for large data storage; holograms are recorded using the camera’s native software only after the experimental conditions are optimized.
 
-The script allows to unwrap the phase from an hologram in a portion of the screen (for which the aspect ratio can be tuned)
-where the camera real-time image is remotely projected. Once the script is started, it takes the first frame as a reference hologram and
-the following are acquired every 1s. A live window shows the converted phase difference. This approach facilitates the overall analysis 
-since no big amount of data are stored but only once the experimental conditions are satisfying, the holograms can be recorded with the camera's sw.
+How to cite this work?
+
+[1] Ricchiuti, G., Allec, S. I., Ziatdinov, M., & Prabhakaran, V. (2025). Towards Intelligent Multimodal Holography: Enabling Real-time, Selective Chemical Imaging for Dynamic Ion Separation. ChemRxiv, Version 1, October 8, 2025. Link: https://doi.org/10.26434/chemrxiv-2025-jfdhc
 
 
