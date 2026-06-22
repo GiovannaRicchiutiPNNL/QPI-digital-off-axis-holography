@@ -9,7 +9,8 @@ The script allows phase unwrapping from a hologram within a selected portion of 
 This approach simplifies analysis by avoiding the need for large data storage; holograms are recorded using the camera’s native software only after the experimental conditions are optimized.
 
 How to cite this work?
-
-[1] Ricchiuti, G., Allec, S. I., Ziatdinov, M., & Prabhakaran, V. (2025). Towards Intelligent Multimodal Holography: Enabling Real-time, Selective Chemical Imaging for Dynamic Ion Separation. ChemRxiv, Version 1, October 8, 2025. Link: https://doi.org/10.26434/chemrxiv-2025-jfdhc
+ 
+If you use this repository or the associated digital off-axis holography workflow, please cite:
+[1] Ricchiuti, G.; Allec, S. I.; Ziatdinov, M.; Prabhakaran, V. Toward Intelligent Multimodal Holography for Real-Time Chemical Imaging of Dynamic Ion Separation. Advanced Intelligent Discovery 2026, e202500237. DOI: 10.1002/aidi.202500237.
 
 
